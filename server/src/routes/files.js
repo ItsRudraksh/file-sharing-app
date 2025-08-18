@@ -8,6 +8,9 @@ const File = require("../models/File");
 const optionalAuth = require("../middleware/optionalAuth");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
+const rateLimit = require("express-rate-limit");
+
+const uploadLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20, message: "Too many files uploaded, please try again after an hour" });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, process.env.UPLOAD_DIR),
@@ -18,7 +21,7 @@ const upload = multer({ storage });
 
 // @route   POST /files/upload
 // @desc    Upload a file (auth is optional)
-router.post("/upload", optionalAuth, upload.single("file"), async (req, res) => {
+router.post("/upload", uploadLimiter, optionalAuth, upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "File is required." });
   }
@@ -38,7 +41,7 @@ router.post("/upload", optionalAuth, upload.single("file"), async (req, res) => 
     created_by: req.user ? req.user.id : null, // Attach user ID if logged in
   });
 
-  res.json({ downloadUrl: `${process.env.BASE_URL}/files/${fileId}` });
+  res.json({ downloadUrl: `${process.env.BASE_URL}/files/${fileId}/download` });
 });
 
 // @route   GET /files/:id/meta

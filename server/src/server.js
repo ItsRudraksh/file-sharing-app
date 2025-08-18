@@ -22,7 +22,6 @@ app.use(passport.initialize());
 require("./config/passport")(passport);
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Too many login attempts, please try again after 15 minutes" });
-const uploadLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20, message: "Too many files uploaded, please try again after an hour" });
 
 cron.schedule("*/10 * * * *", () => {
   console.log("Running scheduled cleanup...");
@@ -33,7 +32,7 @@ app.get("/health", (req, res) => {
   res.json({ ok: true })
 })
 
-app.use("/auth", authRoutes);
+app.use("/auth", authLimiter, authRoutes);
 app.use("/files", fileRoutes);
 
 const auth = require("./middleware/auth");
