@@ -55,4 +55,17 @@ router.get("/:id/meta", async (req, res) => {
   });
 });
 
+// @route   GET /files/:id/download
+// @desc    Download a file
+router.get("/:id/download", async (req, res) => {
+  const file = await File.findOne({ uuid: req.params.id });
+  if (!file) return res.status(404).json({ error: "File not found" });
+  if (new Date() > file.expiry_time) {
+    return res.status(410).json({ error: "Link has expired" });
+  }
+  file.download_count += 1;
+  await file.save();
+  res.download(path.resolve(file.stored_path));
+});
+
 module.exports = router;
