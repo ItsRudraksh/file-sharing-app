@@ -6,6 +6,8 @@ const dayjs = require("dayjs");
 const path = require("path");
 const File = require("../models/File");
 const optionalAuth = require("../middleware/optionalAuth");
+const fs = require("fs");
+const nodemailer = require("nodemailer");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, process.env.UPLOAD_DIR),
@@ -37,6 +39,20 @@ router.post("/upload", optionalAuth, upload.single("file"), async (req, res) => 
   });
 
   res.json({ downloadUrl: `${process.env.BASE_URL}/files/${fileId}` });
+});
+
+// @route   GET /files/:id/meta
+// @desc    Get file metadata
+router.get("/:id/meta", async (req, res) => {
+  const file = await File.findOne({ uuid: req.params.id });
+  if (!file) return res.status(404).json({ error: "File not found" });
+  const left = dayjs(file.expiry_time).diff(dayjs());
+  res.json({
+    filename: file.filename,
+    size: file.size,
+    expiresIn: left,
+    downloads: file.download_count,
+  });
 });
 
 module.exports = router;
