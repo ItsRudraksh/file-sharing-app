@@ -1,0 +1,10 @@
+node_modules
+uploads
+.qodo
+.vscode
+*.pdf
+*.pptx
+*.docx
+backend-plan.md
+project-requirements.md
+.env
