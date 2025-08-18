@@ -4,6 +4,7 @@ const morgan = require("morgan")
 const helmet = require("helmet")
 const dotenv = require("dotenv")
 const mongoose = require("mongoose")
+const passport = require("passport")
 
 dotenv.config()
 
@@ -12,6 +13,8 @@ app.use(cors())
 app.use(morgan("dev"))
 app.use(helmet())
 app.use(express.json())
+app.use(passport.initialize());
+require("./config/passport")(passport);
 
 app.get("/health", (req, res) => {
   res.json({ ok: true })
