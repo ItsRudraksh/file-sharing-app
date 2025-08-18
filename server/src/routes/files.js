@@ -68,4 +68,28 @@ router.get("/:id/download", async (req, res) => {
   res.download(path.resolve(file.stored_path));
 });
 
+// @route   POST /files/:id/send-email
+// @desc    Send download link via email
+router.post("/:id/send-email", async (req, res) => {
+  const file = await File.findOne({ uuid: req.params.id });
+  if (!file) return res.status(404).json({ error: "File not found" });
+
+  const { sender_email, receiver_email } = req.body;
+  if (!receiver_email) return res.status(400).json({ error: "Receiver email is required." });
+
+  let transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+  });
+
+  await transporter.sendMail({
+    from: sender_email || `${process.env.EMAIL_USER}`,
+    to: receiver_email,
+    subject: "You received a file!",
+    text: `Download your file here: ${process.env.BASE_URL}/files/${file.uuid}`,
+  });
+
+  res.json({ sent: true });
+});
+
 module.exports = router;

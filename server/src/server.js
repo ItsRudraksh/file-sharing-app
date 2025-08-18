@@ -7,6 +7,8 @@ const mongoose = require("mongoose")
 const passport = require("passport")
 const authRoutes = require("./routes/auth");
 const fileRoutes = require("./routes/files");
+const cleanup = require("./utils/cleanup");
+const cron = require("node-cron");
 
 dotenv.config()
 
@@ -18,14 +20,18 @@ app.use(express.json())
 app.use(passport.initialize());
 require("./config/passport")(passport);
 
+cron.schedule("*/10 * * * *", () => {
+  console.log("Running scheduled cleanup...");
+  cleanup();
+});
+
 app.get("/health", (req, res) => {
   res.json({ ok: true })
 })
-// Mount Auth Routes
+
 app.use("/auth", authRoutes);
 app.use("/files", fileRoutes);
 
-// Add Protected Route for testing
 const auth = require("./middleware/auth");
 app.get("/me", auth, (req, res) => {
   res.json({
@@ -36,6 +42,13 @@ app.get("/me", auth, (req, res) => {
   });
 });
 
+app.delete("/admin/cleanup", (req, res) => {
+  if (req.headers["x-admin-token"] !== process.env.ADMIN_TOKEN) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  cleanup();
+  res.json({ message: "Cleanup triggered" });
+});
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
