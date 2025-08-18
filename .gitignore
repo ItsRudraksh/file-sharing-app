@@ -5,6 +5,6 @@ uploads
 *.pdf
 *.pptx
 *.docx
-# backend-plan.md
-# project-requirements.md
+backend-plan.md
+project-requirements.md
 .env
