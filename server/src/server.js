@@ -5,6 +5,8 @@ const helmet = require("helmet")
 const dotenv = require("dotenv")
 const mongoose = require("mongoose")
 const passport = require("passport")
+const authRoutes = require("./routes/auth");
+const fileRoutes = require("./routes/files");
 
 dotenv.config()
 
@@ -20,8 +22,8 @@ app.get("/health", (req, res) => {
   res.json({ ok: true })
 })
 // Mount Auth Routes
-const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
+app.use("/files", fileRoutes);
 
 // Add Protected Route for testing
 const auth = require("./middleware/auth");
