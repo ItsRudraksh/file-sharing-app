@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth");
 const fileRoutes = require("./routes/files");
 const cleanup = require("./utils/cleanup");
 const cron = require("node-cron");
+const rateLimit = require("express-rate-limit");
 
 dotenv.config()
 
@@ -19,6 +20,9 @@ app.use(helmet())
 app.use(express.json())
 app.use(passport.initialize());
 require("./config/passport")(passport);
+
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: "Too many login attempts, please try again after 15 minutes" });
+const uploadLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20, message: "Too many files uploaded, please try again after an hour" });
 
 cron.schedule("*/10 * * * *", () => {
   console.log("Running scheduled cleanup...");
