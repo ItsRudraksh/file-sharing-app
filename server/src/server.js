@@ -19,6 +19,21 @@ require("./config/passport")(passport);
 app.get("/health", (req, res) => {
   res.json({ ok: true })
 })
+// Mount Auth Routes
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+
+// Add Protected Route for testing
+const auth = require("./middleware/auth");
+app.get("/me", auth, (req, res) => {
+  res.json({
+    user: {
+      id: req.user.id,
+      email: req.user.email
+    }
+  });
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
