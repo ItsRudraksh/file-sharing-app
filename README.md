@@ -33,6 +33,106 @@ This is a full-stack file sharing application, similar to WeTransfer, that allow
 
 ---
 
+## 📁 Folder Structure
+
+The project is organized into a `client` and `server` directory.
+
+```
+/
+├── client/         # React Frontend
+│   ├── public/
+│   └── src/
+├── server/         # Node.js Backend
+│   ├── src/
+│   │   ├── config/         # Passport.js configuration
+│   │   ├── middleware/     # Express middleware (auth, etc.)
+│   │   ├── models/         # Mongoose schemas
+│   │   ├── routes/         # API routes
+│   │   └── utils/          # Utility scripts (e.g., cleanup)
+│   ├── uploads/        # Directory for stored files
+│   ├── .env            # Environment variables
+│   └── server.js       # Main server entry point
+└── README.md
+```
+---
+
+## 📊 Diagrams
+
+### Entity-Relationship Diagram (ERD)
+
+This diagram shows the relationship between the `User` and `File` models.
+
+```mermaid
+erDiagram
+    USER {
+        ObjectId id PK
+        String email
+        String passwordHash
+        Date createdAt
+    }
+    FILE {
+        ObjectId id PK
+        String uuid
+        String filename
+        String stored_path
+        Number size
+        String mime_type
+        Date upload_time
+        Date expiry_time
+        String sender_email
+        String receiver_email
+        Number download_count
+        ObjectId created_by FK
+    }
+    USER ||--o{ FILE : "uploads"
+```
+
+### File Upload Sequence Diagram
+
+This diagram illustrates the process of uploading a file, both for guests and authenticated users.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Database
+
+    Client->>Server: POST /files/upload (with file)
+    Server->>Server: optionalAuth middleware (checks for JWT)
+    alt Authenticated User
+        Server->>Server: User identified
+    else Guest User
+        Server->>Server: No user identified
+    end
+    Server->>Server: Multer saves file to disk
+    Server->>Database: Create File record (with or without created_by)
+    Database-->>Server: Return new File record
+    Server-->>Client: 200 OK (with downloadUrl)
+```
+
+### File Download Sequence Diagram
+
+This diagram illustrates the process of downloading a file.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Database
+
+    Client->>Server: GET /files/:id/download
+    Server->>Database: Find File by uuid
+    Database-->>Server: Return File record
+    alt File Found & Not Expired
+        Server->>Server: Increment download_count
+        Server->>Database: Save updated File record
+        Server-->>Client: 200 OK (downloads file)
+    else File Not Found or Expired
+        Server-->>Client: 404 Not Found or 410 Gone
+    end
+```
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
