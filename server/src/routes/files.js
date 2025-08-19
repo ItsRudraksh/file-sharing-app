@@ -89,7 +89,7 @@ router.post("/:id/send-email", async (req, res) => {
     from: sender_email || `${process.env.EMAIL_USER}`,
     to: receiver_email,
     subject: "You received a file!",
-    text: `Download your file here: ${process.env.BASE_URL}/files/${file.uuid}`,
+    text: `Download your file here: ${process.env.BASE_URL}/files/${file.uuid}/download`,
   });
 
   res.json({ sent: true });
